@@ -6,8 +6,20 @@ license-file:        LICENSE
 author:              Devin Nusbaum
 maintainer:          d.w.nusbaum@gmail.com
 build-Type:          Simple
-cabal-Version:       >=1.2
+cabal-Version:       >=1.8
 
-executable regex-derivatives
+library
+  exposed-modules:   Regex
+  build-depends:     base
+
+executable regex
   Main-is:           Main.hs
-  Build-Depends:     base
+  build-depends:     base
+  ghc-options:       -Wall -O
+
+Test-Suite spec
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    test
+  main-is:           Spec.hs
+  ghc-options:       -Wall
+  build-depends:     base, hspec, QuickCheck, regex-derivatives
