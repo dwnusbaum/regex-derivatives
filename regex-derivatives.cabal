@@ -1,0 +1,13 @@
+name:                regex-derivatives
+version:             0.0.1
+description:         Regex matcher that uses derivatives instead of finite automata.
+license:             BSD2
+license-file:        LICENSE
+author:              Devin Nusbaum
+maintainer:          d.w.nusbaum@gmail.com
+build-Type:          Simple
+cabal-Version:       >=1.2
+
+executable regex-derivatives
+  Main-is:           Main.hs
+  Build-Depends:     base
