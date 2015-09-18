@@ -1,8 +1,16 @@
 module Main where
 
+import System.Environment
+
+import Parse
 import Regex
 
 main :: IO ()
-main = print $ matches regex "aabbc"
-  where regex = Seq (Seq (Kleene (Symbol 'a')) (Kleene (Symbol 'b'))) (Kleene (Symbol 'c'))
+main = do
+    args <- getArgs
+    case length args of
+        2 -> case parseRegex $ head args of
+               Left  err -> print err
+               Right reg -> print $ matches reg $ head $ tail args
+        _ -> print "Wrong number of arguments"
 
