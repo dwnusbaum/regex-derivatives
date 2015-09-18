@@ -27,6 +27,9 @@ spec = do
     it "parses \"a*\" as (Kleene (Symbol a))" $
       forAll validChar $ \x -> parseRegex [x, '*'] `shouldBe` Right (Kleene (Symbol x))
 
+    it "parses \"a?\" as (Or Empty (Symbol a))" $
+      forAll validChar $ \x -> parseRegex [x, '?'] `shouldBe` Right (Or Empty (Symbol x))
+
     it "parses \"ab*\" as (Seq (Symbol a) (Kleene (Symbol a)))" $
       forAll validChar $ \x ->
       forAll validChar $ \y -> parseRegex [x, y, '*'] `shouldBe` Right (Seq (Symbol x) (Kleene (Symbol y)))
