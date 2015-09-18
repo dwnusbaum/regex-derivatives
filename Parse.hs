@@ -1,5 +1,6 @@
 module Parse
   ( parseRegex
+  , reserved
   ) where
 
 import Control.Applicative ((<*), (*>), liftA, liftA2)
@@ -16,7 +17,10 @@ regex :: Parser Regex
 regex = liftA (foldl1 Seq) $ many1 (try alternative <|> try kleene <|> symbol)
 
 symbol :: Parser Regex
-symbol = liftA Symbol $ noneOf "()|*\\"
+symbol = liftA Symbol $ (try (char '\\') *> oneOf reserved) <|> noneOf reserved
+
+reserved :: String
+reserved = "()|\\*"
 
 alternative :: Parser Regex
 alternative = liftA2 Or (char '(' *> regex) $ char '|' *> regex <* char ')'
