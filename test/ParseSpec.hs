@@ -18,6 +18,9 @@ spec = do
       forAll validChar $ \x ->
       forAll validChar $ \y -> parseRegex ['(', x, '|', y, ')'] `shouldBe` Right (Or (Symbol x) (Symbol y))
 
+    it "parses \"[abc]\" as (Or (Symbol a) (Or (Symbol b) (Symbol c)))" $
+      forAll (vectorOf 3 validChar) $ \xs -> parseRegex ('[' : xs ++ "]") `shouldBe` Right (Or (Symbol $ head xs) (Or (Symbol $ xs !! 1) (Symbol $ xs !! 2)))
+
     it "parses \"ab\" as (Seq (Symbol a) (Symbol b))" $
       forAll validChar $ \x ->
       forAll validChar $ \y -> parseRegex [x, y] `shouldBe` Right (Seq (Symbol x) (Symbol y))

@@ -14,13 +14,16 @@ parseRegex :: String -> Either ParseError Regex
 parseRegex = parse regex "Regex Matcher"
 
 regex :: Parser Regex
-regex = liftA (foldl1 Seq) $ many1 (try alternative <|> try kleene <|> symbol)
+regex = liftA (foldr1 Seq) $ many1 (characterClass <|> try alternative <|> try kleene <|> symbol)
 
 symbol :: Parser Regex
 symbol = liftA Symbol $ (try (char '\\') *> oneOf reserved) <|> noneOf reserved
 
 reserved :: String
-reserved = "()|\\*"
+reserved = "()[]|\\*"
+
+characterClass :: Parser Regex
+characterClass = liftA (foldr1 Or) $ char '[' *> many1 symbol <* char ']'
 
 alternative :: Parser Regex
 alternative = liftA2 Or (char '(' *> regex) $ char '|' *> regex <* char ')'
