@@ -1,8 +1,30 @@
 module RegexSpec where
 
+import Control.Applicative (liftA, liftA2, pure)
 import Test.Hspec
 import Test.QuickCheck
 import Regex
+
+instance Arbitrary Regex where
+  arbitrary = sized arbRegex
+    where arbRegex 0 = oneof [pure Empty, liftA Symbol arbitrary]
+          arbRegex n = oneof
+            [ liftA Symbol arbitrary
+            , liftA2 Or (oneof [pure Empty, subRegex]) subRegex
+            , liftA2 Seq subRegex subRegex
+            , liftA Kleene subRegex ]
+            where subRegex = arbRegex $ n `div` 2
+
+-- Generates a list of all minimal matches for a regex
+minimalMatches :: Regex -> [String]
+minimalMatches Nil   = []
+minimalMatches Empty = [""]
+minimalMatches (Symbol x) = [[x]]
+minimalMatches (Or r1 r2) = minimalMatches r1 ++ minimalMatches r2
+minimalMatches (Seq r1 r2) = concatMap (\m -> map (m ++) r2s) $ minimalMatches r1
+  where r2s = minimalMatches r2
+minimalMatches (Kleene r) = "" : matches ++ map (concat . replicate 2) matches
+  where matches = minimalMatches r
 
 spec :: Spec
 spec = do
@@ -34,13 +56,8 @@ spec = do
         let regex = Kleene (Symbol x)
         in matches regex "" && matches regex (replicate i x) `shouldBe` True
 
-    it "matches (Kleene (Or (Symbol a) (Symbol b))) against a or b zero or more times" $
-      property $ \x y i ->
-        let regex = Kleene (Or (Symbol x) (Symbol y))
-        in matches regex ""
-        && matches regex (replicate i x)
-        && matches regex (replicate i y)
-        && matches regex [x,y,x,y,y,x,x] `shouldBe` True
+    it "matches arbitrary regexes against all of their minimal matches" $
+      property $ \r -> all (matches r) (minimalMatches r) `shouldBe` True
 
 main :: IO ()
 main = hspec spec

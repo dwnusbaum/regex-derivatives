@@ -2,8 +2,15 @@ module ParseSpec where
 
 import Test.Hspec
 import Test.QuickCheck
-import Regex
+
 import Parse
+import Regex
+
+validChar :: Gen Char
+validChar = arbitrary `suchThat` \x -> not $ x `elem` reserved
+
+invalidChar :: Gen Char
+invalidChar = arbitrary `suchThat` \x -> x `elem` reserved
 
 spec :: Spec
 spec = do
@@ -39,11 +46,6 @@ spec = do
       forAll validChar $ \y -> parseRegex ['[', x, y, ']', '*'] `shouldBe` Right (Kleene (Or (Symbol x) (Symbol y)))
 
 
-validChar :: Gen Char
-validChar = arbitrary `suchThat` \x -> not $ x `elem` reserved
-
-invalidChar :: Gen Char
-invalidChar = arbitrary `suchThat` \x -> x `elem` reserved
 
 main :: IO ()
 main = hspec spec
