@@ -14,7 +14,7 @@ parseRegex :: String -> Either ParseError Regex
 parseRegex = parse regex "Regex Matcher"
 
 regex :: Parser Regex
-regex = liftA (foldr1 Seq) $ many1 (characterClass <|> try alternative <|> try kleene <|> symbol)
+regex = liftA (foldr1 Seq) $ many1 (try alternative <|> try kleene <|> characterClass <|> symbol)
 
 symbol :: Parser Regex
 symbol = liftA Symbol $ (try (char '\\') *> oneOf reserved) <|> noneOf reserved
@@ -29,4 +29,4 @@ alternative :: Parser Regex
 alternative = liftA2 Or (char '(' *> regex) $ char '|' *> regex <* char ')'
 
 kleene :: Parser Regex
-kleene = liftA Kleene $ (char '(' *> regex <* char ')' <|> symbol) <* char '*'
+kleene = liftA Kleene $ (char '(' *> regex <* char ')' <|> symbol <|> characterClass) <* char '*'

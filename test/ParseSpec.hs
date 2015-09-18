@@ -21,9 +21,8 @@ spec = do
     it "parses \"[abc]\" as (Or (Symbol a) (Or (Symbol b) (Symbol c)))" $
       forAll (vectorOf 3 validChar) $ \xs -> parseRegex ('[' : xs ++ "]") `shouldBe` Right (Or (Symbol $ head xs) (Or (Symbol $ xs !! 1) (Symbol $ xs !! 2)))
 
-    it "parses \"ab\" as (Seq (Symbol a) (Symbol b))" $
-      forAll validChar $ \x ->
-      forAll validChar $ \y -> parseRegex [x, y] `shouldBe` Right (Seq (Symbol x) (Symbol y))
+    it "parses \"abc\" as (Seq (Symbol a) (Seq (Symbol b) (Symbol c)))" $
+      forAll (vectorOf 3 validChar) $ \xs -> parseRegex xs `shouldBe` Right (Seq (Symbol $ xs !! 0) (Seq (Symbol $ xs !! 1) (Symbol $ xs !! 2)))
 
     it "parses \"a*\" as (Kleene (Symbol a))" $
       forAll validChar $ \x -> parseRegex [x, '*'] `shouldBe` Right (Kleene (Symbol x))
@@ -31,6 +30,11 @@ spec = do
     it "parses \"ab*\" as (Seq (Symbol a) (Kleene (Symbol a)))" $
       forAll validChar $ \x ->
       forAll validChar $ \y -> parseRegex [x, y, '*'] `shouldBe` Right (Seq (Symbol x) (Kleene (Symbol y)))
+
+    it "parses \"[ab]*\" as (Kleene (Or (Symbol a) (Symbol b)))" $
+      forAll validChar $ \x ->
+      forAll validChar $ \y -> parseRegex ['[', x, y, ']', '*'] `shouldBe` Right (Kleene (Or (Symbol x) (Symbol y)))
+
 
 validChar :: Gen Char
 validChar = arbitrary `suchThat` \x -> not $ x `elem` reserved

@@ -29,11 +29,18 @@ spec = do
         let regex = Seq (Symbol x) (Symbol y)
         in matches regex [x, y] `shouldBe` True
 
-    it "matches (Kleene r) against r zero or more times" $
+    it "matches (Kleene (Symbol a)) against a zero or more times" $
       property $ \x i ->
         let regex = Kleene (Symbol x)
         in matches regex "" && matches regex (replicate i x) `shouldBe` True
 
+    it "matches (Kleene (Or (Symbol a) (Symbol b))) against a or b zero or more times" $
+      property $ \x y i ->
+        let regex = Kleene (Or (Symbol x) (Symbol y))
+        in matches regex ""
+        && matches regex (replicate i x)
+        && matches regex (replicate i y)
+        && matches regex [x,y,x,y,y,x,x] `shouldBe` True
 
 main :: IO ()
 main = hspec spec
