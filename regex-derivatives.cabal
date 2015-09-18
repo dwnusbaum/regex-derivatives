@@ -9,12 +9,12 @@ build-Type:          Simple
 cabal-Version:       >=1.8
 
 library
-  exposed-modules:   Regex
-  build-depends:     base
+  exposed-modules:   Regex, Parse
+  build-depends:     base, mtl, parsec
 
 executable regex
   Main-is:           Main.hs
-  build-depends:     base
+  build-depends:     base, parsec
   ghc-options:       -Wall -O
 
 Test-Suite spec
@@ -22,4 +22,4 @@ Test-Suite spec
   hs-source-dirs:    test
   main-is:           Spec.hs
   ghc-options:       -Wall
-  build-depends:     base, hspec, QuickCheck, regex-derivatives
+  build-depends:     base, hspec, regex-derivatives, QuickCheck

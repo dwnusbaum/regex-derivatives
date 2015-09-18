@@ -36,5 +36,6 @@ matchesEmpty (Or r1 r2) = matchesEmpty r1 || matchesEmpty r2
 matchesEmpty (Seq r1 r2) = matchesEmpty r1 && matchesEmpty r2
 matchesEmpty (Kleene _) = True
 
+-- Returns true if the regex matches the string
 matches :: Regex -> String -> Bool
 matches r = matchesEmpty . foldl derive r
