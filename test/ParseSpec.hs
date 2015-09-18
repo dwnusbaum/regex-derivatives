@@ -7,13 +7,13 @@ import Parse
 import Regex
 
 validChar :: Gen Char
-validChar = arbitrary `suchThat` \x -> not $ x `elem` reserved
+validChar = arbitrary `suchThat` \x -> x `notElem` reserved
 
 invalidChar :: Gen Char
 invalidChar = arbitrary `suchThat` \x -> x `elem` reserved
 
 spec :: Spec
-spec = do
+spec =
   describe "Parse.parseRegex" $ do
     it "parses \"a\" as (Symbol a) if a is not a reserved symbol" $
       forAll validChar $ \x -> parseRegex [x] `shouldBe` Right (Symbol x)
@@ -29,7 +29,7 @@ spec = do
       forAll (vectorOf 3 validChar) $ \xs -> parseRegex ('[' : xs ++ "]") `shouldBe` Right (Or (Symbol $ head xs) (Or (Symbol $ xs !! 1) (Symbol $ xs !! 2)))
 
     it "parses \"abc\" as (Seq (Symbol a) (Seq (Symbol b) (Symbol c)))" $
-      forAll (vectorOf 3 validChar) $ \xs -> parseRegex xs `shouldBe` Right (Seq (Symbol $ xs !! 0) (Seq (Symbol $ xs !! 1) (Symbol $ xs !! 2)))
+      forAll (vectorOf 3 validChar) $ \xs -> parseRegex xs `shouldBe` Right (Seq (Symbol $ head xs) (Seq (Symbol $ xs !! 1) (Symbol $ xs !! 2)))
 
     it "parses \"a*\" as (Kleene (Symbol a))" $
       forAll validChar $ \x -> parseRegex [x, '*'] `shouldBe` Right (Kleene (Symbol x))

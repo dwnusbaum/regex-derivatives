@@ -1,3 +1,5 @@
+{-# Language LambdaCase #-}
+
 module RegexSpec where
 
 import Control.Applicative (liftA, liftA2, pure)
@@ -7,27 +9,35 @@ import Regex
 
 instance Arbitrary Regex where
   arbitrary = sized arbRegex
-    where arbRegex 0 = oneof [pure Empty, liftA Symbol arbitrary]
-          arbRegex n = oneof
-            [ liftA Symbol arbitrary
-            , liftA2 Or (oneof [pure Empty, subRegex]) subRegex
-            , liftA2 Seq subRegex subRegex
-            , liftA Kleene subRegex ]
-            where subRegex = arbRegex $ n `div` 2
+    where arbRegex 0 = oneof
+            [ pure Empty
+            , liftA Symbol arbitrary
+            ]
+          arbRegex n = frequency
+            [ (1, pure Empty)
+            , (3, liftA Symbol arbitrary)
+            , (2, liftA2 Or subRegex noEmptyRegex)
+            , (2, liftA2 Seq subRegex noEmptyRegex)
+            , (1, liftA Kleene $ noEmptyRegex `suchThat` \case
+                  Kleene _ -> False
+                  _ -> True
+              )
+            ]
+            where subRegex = arbRegex (n `div` 2)
+                  noEmptyRegex = subRegex `suchThat` \r -> r /= Empty
 
--- Generates a list of all minimal matches for a regex
-minimalMatches :: Regex -> [String]
-minimalMatches Nil   = []
-minimalMatches Empty = [""]
-minimalMatches (Symbol x) = [[x]]
-minimalMatches (Or r1 r2) = minimalMatches r1 ++ minimalMatches r2
-minimalMatches (Seq r1 r2) = concatMap (\m -> map (m ++) r2s) $ minimalMatches r1
-  where r2s = minimalMatches r2
-minimalMatches (Kleene r) = "" : matches ++ map (concat . replicate 2) matches
-  where matches = minimalMatches r
+-- Generates a list of matches for a regex that exhausts all branches of the regex
+exhaustiveMatches :: Regex -> [String]
+exhaustiveMatches Nil   = []
+exhaustiveMatches Empty = [""]
+exhaustiveMatches (Symbol x) = [[x]]
+exhaustiveMatches (Or r1 r2) = exhaustiveMatches r1 ++ exhaustiveMatches r2
+exhaustiveMatches (Seq r1 r2) = concatMap (\m -> map (m ++) $ exhaustiveMatches r2) $ exhaustiveMatches r1
+exhaustiveMatches (Kleene r) = "" : rs ++ map (concat . replicate 2) rs
+  where rs = exhaustiveMatches r
 
 spec :: Spec
-spec = do
+spec =
   describe "Regex.matches" $ do
     it "never matches if the regex is Nil" $
       property $ \x -> matches Nil x `shouldBe` False
@@ -57,7 +67,7 @@ spec = do
         in matches regex "" && matches regex (replicate i x) `shouldBe` True
 
     it "matches arbitrary regexes against all of their minimal matches" $
-      property $ \r -> all (matches r) (minimalMatches r) `shouldBe` True
+      property $ \r -> all (matches r) (exhaustiveMatches r) `shouldBe` True
 
 main :: IO ()
 main = hspec spec
