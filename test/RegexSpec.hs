@@ -43,36 +43,42 @@ matchesTest r s
 
 spec :: Spec
 spec =
-  describe "Regex.matches" $ do
-    it "never matches if the regex is Nil" $
-      property $ \x -> matchesTest Nil x `shouldBe` False
+  describe "Regex" $ do
+    describe "matches" $ do
+      it "never matches if the regex is Nil" $
+        property $ \x -> matchesTest Nil x `shouldBe` False
 
-    it "matches Empty against the empty string and nothing else" $
-      property $ \x ->
-        case x of
-          [] -> matchesTest Empty x `shouldBe` True
-          _  -> matchesTest Empty x `shouldBe` False
+      it "matches Empty against the empty string and nothing else" $
+        property $ \x ->
+          case x of
+            [] -> matchesTest Empty x `shouldBe` True
+            _  -> matchesTest Empty x `shouldBe` False
 
-    it "matches (Symbol c) against the single character c" $
-      property $ \x -> matchesTest (Symbol x) [x] `shouldBe` True
+      it "matches (Symbol c) against the single character c" $
+        property $ \x -> matchesTest (Symbol x) [x] `shouldBe` True
 
-    it "matches (Or a b) against either a or b" $
-      property $ \x y ->
-        let regex = Or (Symbol x) (Symbol y)
-        in matchesTest regex [x] && matchesTest regex [y] `shouldBe` True
+      it "matches (Or a b) against either a or b" $
+        property $ \x y ->
+          let regex = Or (Symbol x) (Symbol y)
+          in matchesTest regex [x] && matchesTest regex [y] `shouldBe` True
 
-    it "matches (Seq a b) against a followed by b" $
-      property $ \x y ->
-        let regex = Seq (Symbol x) (Symbol y)
-        in matchesTest regex [x, y] `shouldBe` True
+      it "matches (Seq a b) against a followed by b" $
+        property $ \x y ->
+          let regex = Seq (Symbol x) (Symbol y)
+          in matchesTest regex [x, y] `shouldBe` True
 
-    it "matches (Kleene (Symbol a)) against a zero or more times" $
-      property $ \x i ->
-        let regex = Kleene (Symbol x)
-        in matchesTest regex "" && matchesTest regex (replicate i x) `shouldBe` True
+      it "matches (Kleene (Symbol a)) against a zero or more times" $
+        property $ \x i ->
+          let regex = Kleene (Symbol x)
+          in matchesTest regex "" && matchesTest regex (replicate i x) `shouldBe` True
 
-    it "matches arbitrary regexes against all of their minimal matches" $
-      property $ \r -> all (matchesTest r) (exhaustiveMatches r) `shouldBe` True
+      it "matches arbitrary regexes against all of their minimal matches" $
+        property $ \r -> all (matchesTest r) (exhaustiveMatches r) `shouldBe` True
+
+    describe "allMatches" $ do
+      it "returns all non-overlapping matches of a regex in a string" $
+        property $ \x ->
+        forAll (arbitrary `suchThat` (x /=)) $ \y -> allMatches (Symbol x) [x,y,x,y,x,y] `shouldBe` [(0, 1), (2, 1), (4, 1)]
 
 main :: IO ()
 main = hspec spec

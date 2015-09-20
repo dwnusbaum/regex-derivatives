@@ -1,6 +1,7 @@
 -- | This module provides the Regex data type and matching functions
 module Regex
   ( Regex(..)
+  , allMatches
   , matches
   ) where
 
@@ -46,7 +47,9 @@ matches r s = matches' r s 0
   where matches' r' [] i
           | matchesEmpty r' = Just i
           | otherwise       = Nothing
-        matches' r' (c:cs) i = matches' (derive r' c) cs $ i + 1
+        matches' r' (c:cs) i
+          | matchesEmpty r' = Just i
+          | otherwise       = matches' (derive r' c) cs $ i + 1
 
 -- Returns a list of all matches in the string.
 -- Matches cannot be overlapping.

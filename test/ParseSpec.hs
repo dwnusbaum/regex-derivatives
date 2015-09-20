@@ -7,10 +7,10 @@ import Parse
 import Regex
 
 validChar :: Gen Char
-validChar = arbitrary `suchThat` \x -> x `notElem` reserved
+validChar = arbitrary `suchThat` (`notElem` reserved)
 
 invalidChar :: Gen Char
-invalidChar = arbitrary `suchThat` \x -> x `elem` reserved
+invalidChar = arbitrary `suchThat` (`elem` reserved)
 
 spec :: Spec
 spec =
