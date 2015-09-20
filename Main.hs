@@ -12,5 +12,5 @@ main = do
         2 -> case parseRegex $ head args of
                Left  err -> print err
                Right reg -> print $ matches reg $ head $ tail args
-        _ -> putStrLn "Wrong number of arguments"
+        _ -> putStrLn "Wrong number of arguments. Try: regex a* aaaa"
 

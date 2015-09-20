@@ -13,6 +13,9 @@ data Regex
    | Kleene Regex    -- Matches r*
    deriving (Eq, Show)
 
+-- The first int is the start index, and the second is the length
+type Match = (Int, Int)
+
 -- Returns the derivative of the regex with respect to the character
 derive :: Regex -> Char -> Regex
 derive Nil   _ = Nil
@@ -36,6 +39,21 @@ matchesEmpty (Or r1 r2) = matchesEmpty r1 || matchesEmpty r2
 matchesEmpty (Seq r1 r2) = matchesEmpty r1 && matchesEmpty r2
 matchesEmpty (Kleene _) = True
 
--- Returns true if the regex matches the string
-matches :: Regex -> String -> Bool
-matches r = matchesEmpty . foldl derive r
+-- Returns Just the length of the match if the regex matches the string, otherwise Nothing
+-- It always returns the minimal match
+matches :: Regex -> String -> Maybe Int
+matches r s = matches' r s 0
+  where matches' r' [] i
+          | matchesEmpty r' = Just i
+          | otherwise       = Nothing
+        matches' r' (c:cs) i = matches' (derive r' c) cs $ i + 1
+
+-- Returns a list of all matches in the string.
+-- Matches cannot be overlapping.
+allMatches :: Regex -> String -> [Match]
+allMatches r s = allMatches' s 0
+  where allMatches' [] i = []
+        allMatches' cs i =
+          case matches r cs of
+            Nothing  -> allMatches' (tail cs) $ i + 1
+            Just len -> (i, len) : allMatches' (drop len cs) (i + len)
