@@ -41,15 +41,16 @@ matchesEmpty (Seq r1 r2) = matchesEmpty r1 && matchesEmpty r2
 matchesEmpty (Kleene _) = True
 
 -- Returns Just the length of the match if the regex matches the string, otherwise Nothing
--- It always returns the minimal match
 matches :: Regex -> String -> Maybe Int
 matches r s = matches' r s 0
   where matches' r' [] i
           | matchesEmpty r' = Just i
           | otherwise       = Nothing
-        matches' r' (c:cs) i
-          | matchesEmpty r' = Just i
-          | otherwise       = matches' (derive r' c) cs $ i + 1
+        matches' r' (c:cs) i =
+          case matches' (derive r' c) cs $ i + 1 of
+            Nothing -> if matchesEmpty r' then Just i else Nothing
+            found   -> found
+
 
 -- Returns a list of all matches in the string.
 -- Matches cannot be overlapping.

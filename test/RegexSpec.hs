@@ -75,7 +75,7 @@ spec =
       it "matches arbitrary regexes against all of their minimal matches" $
         property $ \r -> all (matchesTest r) (exhaustiveMatches r) `shouldBe` True
 
-    describe "allMatches" $ do
+    describe "allMatches" $
       it "returns all non-overlapping matches of a regex in a string" $
         property $ \x ->
         forAll (arbitrary `suchThat` (x /=)) $ \y -> allMatches (Symbol x) [x,y,x,y,x,y] `shouldBe` [(0, 1), (2, 1), (4, 1)]
