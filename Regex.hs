@@ -7,6 +7,7 @@ module Regex
 
 data Regex
    = Nil             -- No string matches this pattern
+   | Dot             -- Matches any single character
    | Empty           -- Matches the empty string
    | Symbol Char     -- Matches a specific character
    | Or Regex Regex  -- Matches first or second pattern
@@ -20,6 +21,7 @@ type Match = (Int, Int)
 -- Returns the derivative of the regex with respect to the character
 derive :: Regex -> Char -> Regex
 derive Nil   _ = Nil
+derive Dot   _ = Empty
 derive Empty _ = Nil
 derive (Symbol c) x
   | x == c = Empty
@@ -34,6 +36,7 @@ derive (Kleene r1) c = Seq (derive r1 c) (Kleene r1)
 -- Otherwise, it returns the unmatcheable regex
 matchesEmpty :: Regex -> Bool
 matchesEmpty Nil = False
+matchesEmpty Dot = False
 matchesEmpty Empty = True
 matchesEmpty (Symbol _) = False
 matchesEmpty (Or r1 r2) = matchesEmpty r1 || matchesEmpty r2

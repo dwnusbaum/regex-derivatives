@@ -11,10 +11,12 @@ instance Arbitrary Regex where
   arbitrary = sized arbRegex
     where arbRegex 0 = oneof
             [ pure Empty
+            , pure Dot
             , liftA Symbol arbitrary
             ]
           arbRegex n = frequency
             [ (1, pure Empty)
+            , (1, pure Dot)
             , (3, liftA Symbol arbitrary)
             , (2, liftA2 Or subRegex noEmptyRegex)
             , (2, liftA2 Seq subRegex noEmptyRegex)
@@ -29,6 +31,7 @@ instance Arbitrary Regex where
 -- Generates a list of matches for a regex that exhausts all branches of the regex
 exhaustiveMatches :: Regex -> [String]
 exhaustiveMatches Nil   = []
+exhaustiveMatches Dot   = ["."] -- Really can be any character
 exhaustiveMatches Empty = [""]
 exhaustiveMatches (Symbol x) = [[x]]
 exhaustiveMatches (Or r1 r2) = exhaustiveMatches r1 ++ exhaustiveMatches r2
@@ -47,6 +50,9 @@ spec =
     describe "matches" $ do
       it "never matches if the regex is Nil" $
         property $ \x -> matchesTest Nil x `shouldBe` False
+
+      it "matches Dot against any character c" $
+        property $ \x -> matchesTest Dot [x] `shouldBe` True
 
       it "matches Empty against the empty string and nothing else" $
         property $ \x ->
