@@ -32,7 +32,7 @@ spec =
     it "parses \"[abc]\" as (Or (Symbol a) (Or (Symbol b) (Symbol c)))" $
       forAll (vectorOf 3 validChar) $ \xs -> parseRegex ('[' : xs ++ "]") `shouldBe` Right (Or (Symbol $ head xs) (Or (Symbol $ xs !! 1) (Symbol $ xs !! 2)))
 
-    it "parses \"abc\" as (Seq (Symbol a) (Seq (Symbol b) (Symbol c)))" $
+    it "parses \"abc\" as (Seq (Seq (Symbol a) (Symbol b)) (Symbol c))" $
       forAll (vectorOf 3 validChar) $ \xs -> parseRegex xs `shouldBe` Right (Seq (Seq (Symbol $ head xs) (Symbol $ xs !! 1)) (Symbol $ xs !! 2))
 
     it "parses \"a*\" as (Kleene (Symbol a))" $
