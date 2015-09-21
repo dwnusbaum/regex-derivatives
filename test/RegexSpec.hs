@@ -44,48 +44,48 @@ exhaustiveMatches (Kleene  r) = "" : rs ++ map (concat . replicate 2) rs
   where
     rs = exhaustiveMatches r
 
--- | Converts the Match returned from Regex.matches into a Bool
-matchesTest :: Regex -> String -> Bool
-matchesTest r s
-    | matches r s == Just (Match 0 $ length s) = True
-    | otherwise = False
-
 spec :: Spec
 spec =
   describe "Regex" $ do
     describe "matches" $ do
       it "never matches if the regex is Nil" $
-        property $ \x -> matchesTest Nil x `shouldBe` False
+        property $ \x -> matchesExact Nil x `shouldBe` False
 
       it "matches Dot against any character c" $
-        property $ \x -> matchesTest Dot [x] `shouldBe` True
+        property $ \x -> matchesExact Dot [x] `shouldBe` True
 
       it "matches Empty against the empty string and nothing else" $
         property $ \x ->
           case x of
-            [] -> matchesTest Empty x `shouldBe` True
-            _  -> matchesTest Empty x `shouldBe` False
+            [] -> matchesExact Empty x `shouldBe` True
+            _  -> matchesExact Empty x `shouldBe` False
 
       it "matches (Sym c) against the single character c" $
-        property $ \x -> matchesTest (Sym x) [x] `shouldBe` True
+        property $ \x -> matchesExact (Sym x) [x] `shouldBe` True
 
       it "matches (Or a b) against either a or b" $
         property $ \x y ->
           let regex = Or (Sym x) (Sym y)
-          in matchesTest regex [x] && matchesTest regex [y] `shouldBe` True
+          in matchesExact regex [x] && matchesExact regex [y] `shouldBe` True
 
       it "matches (Seq a b) against a followed by b" $
         property $ \x y ->
           let regex = Seq (Sym x) (Sym y)
-          in matchesTest regex [x, y] `shouldBe` True
+          in matchesExact regex [x, y] `shouldBe` True
 
       it "matches (Kleene (Sym a)) against a zero or more times" $
         property $ \x i ->
           let regex = Kleene (Sym x)
-          in matchesTest regex "" && matchesTest regex (replicate i x) `shouldBe` True
+          in matchesExact regex "" && matchesExact regex (replicate i x) `shouldBe` True
 
       it "matches arbitrary regexes against all of their minimal matches" $
-        property $ \r -> all (matchesTest r) (exhaustiveMatches r) `shouldBe` True
+        property $ \r -> all (matchesExact r) (exhaustiveMatches r) `shouldBe` True
+
+      it "matches a pathological string in polynomial time" $
+        property $ \(Positive n) ->
+          let r1 = foldl1 Seq $ replicate n (Or Empty (Sym 'x'))
+              r2 = foldl1 Seq $ replicate n (Sym 'x')
+          in matchesExact (Seq r1 r2) (replicate n 'x') `shouldBe` True
 
     describe "allMatches" $
       it "returns all non-overlapping matches of a regex in a string" $

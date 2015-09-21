@@ -4,6 +4,7 @@ module Regex
     , Match(..)
     , allMatches
     , matches
+    , matchesExact
     ) where
 
 -- | The data type of regexes
@@ -48,6 +49,13 @@ matchesEmpty (Sym     _) = False
 matchesEmpty (Or  r1 r2) = matchesEmpty r1 || matchesEmpty r2
 matchesEmpty (Seq r1 r2) = matchesEmpty r1 && matchesEmpty r2
 matchesEmpty (Kleene  _) = True
+
+-- | Match a string to a regex exactly.  Returns True if the full string
+-- matches the regex, and False otherwise.
+matchesExact :: Regex -> String -> Bool
+matchesExact r s
+    | matches r s == Just (Match 0 $ length s) = True
+    | otherwise = False
 
 -- | Match a string to a regex.  Returns Just the length of the match if the
 -- regex matches the string, otherwise Nothing.
