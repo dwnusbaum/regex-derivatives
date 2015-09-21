@@ -67,7 +67,7 @@ matches r s = matches' r s 0
 allMatches :: Regex -> String -> [Match]
 allMatches r s = allMatches' s 0
   where
-    allMatches' [] i = []
+    allMatches' [] _ = []
     allMatches' cs i = case matches r cs of
         Nothing    -> allMatches' (tail cs) $ i + 1
         Just match -> Match i (size match) : allMatches' (drop (size match) cs) (i + size match)
