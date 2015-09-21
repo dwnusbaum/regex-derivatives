@@ -4,9 +4,14 @@ Simple regex engine written in Haskell.
 
 Instead of using backtracking or finite automata to match strings, it uses derivatives.  The idea and implementation are taken from a blog post by [Matt Might][Matt's blog].
 
-To install regex-derivatives, run `cabal update && cabal install` from inside of the 'regex-derivatives' directory.
+### Installation
+`git clone https://github.com/dwnusbaum/regex-derivatives.git`
+`cd regex-derivatives`
+`cabal update && cabal install`
 
-To use regex-derivatives, run `regex pattern text`, i.e. `regex 'Str..' "$(cat ./Main.hs)"`.
+### Use
+`regex '[abc]*d?' 'aaacbccbd'`
+`regex 'Str..' "$(cat ./Main.hs)"`
 
 The output is colored like the output of [ag][the_silver_searcher].
 
