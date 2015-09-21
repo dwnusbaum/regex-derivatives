@@ -1,66 +1,73 @@
 -- | This module provides the Regex data type and matching functions
 module Regex
-  ( Regex(..)
-  , allMatches
-  , matches
-  ) where
+    ( Regex(..)
+    , Match(..)
+    , allMatches
+    , matches
+    ) where
 
+-- | The data type of regexes
 data Regex
-   = Nil             -- No string matches this pattern
-   | Dot             -- Matches any single character
-   | Empty           -- Matches the empty string
-   | Symbol Char     -- Matches a specific character
-   | Or Regex Regex  -- Matches first or second pattern
-   | Seq Regex Regex -- Matches one pattern followed by another
-   | Kleene Regex    -- Matches r*
-   deriving (Eq, Show)
+    = Nil              -- ^ No string matches this pattern
+    | Dot              -- ^ Matches any single character
+    | Empty            -- ^ Matches the empty string
+    | Sym Char         -- ^ Matches a specific character
+    | Or  Regex Regex  -- ^ Matches first or second pattern
+    | Seq Regex Regex  -- ^ Matches one pattern followed by another
+    | Kleene Regex     -- ^ Matches the kleene star of a pattern
+    deriving (Eq, Show)
 
--- The first int is the start index, and the second is the length
-type Match = (Int, Int)
+-- | The data type of matches
+data Match = Match
+    { start :: Int  -- ^ Start index of the match.
+    , size  :: Int  -- ^ The size of the match.
+    }
+    deriving (Eq, Show)
 
--- Returns the derivative of the regex with respect to the character
+-- | Derive a regex with respect to a character.
 derive :: Regex -> Char -> Regex
 derive Nil   _ = Nil
 derive Dot   _ = Empty
 derive Empty _ = Nil
-derive (Symbol c) x
-  | x == c = Empty
-  | otherwise = Nil
-derive (Or r1 r2) c = Or (derive r1 c) (derive r2 c)
+derive (Sym c) x
+    | x == c = Empty
+    | otherwise = Nil
+derive (Or  r1 r2) c = Or (derive r1 c) (derive r2 c)
 derive (Seq r1 r2) c
-  | matchesEmpty r1 = Or (derive r2 c) $ Seq (derive r1 c) r2
-  | otherwise = Seq (derive r1 c) r2
+    | matchesEmpty r1 = Or (derive r2 c) $ Seq (derive r1 c) r2
+    | otherwise = Seq (derive r1 c) r2
 derive (Kleene r1) c = Seq (derive r1 c) (Kleene r1)
 
--- If the given regex accepts the empty strings, this returns empty.
--- Otherwise, it returns the unmatcheable regex
+-- | If the given regex accepts the empty string, this returns true.
+-- Otherwise it returns false.
 matchesEmpty :: Regex -> Bool
-matchesEmpty Nil = False
-matchesEmpty Dot = False
-matchesEmpty Empty = True
-matchesEmpty (Symbol _) = False
-matchesEmpty (Or r1 r2) = matchesEmpty r1 || matchesEmpty r2
+matchesEmpty Nil         = False
+matchesEmpty Dot         = False
+matchesEmpty Empty       = True
+matchesEmpty (Sym     _) = False
+matchesEmpty (Or  r1 r2) = matchesEmpty r1 || matchesEmpty r2
 matchesEmpty (Seq r1 r2) = matchesEmpty r1 && matchesEmpty r2
-matchesEmpty (Kleene _) = True
+matchesEmpty (Kleene  _) = True
 
--- Returns Just the length of the match if the regex matches the string, otherwise Nothing
-matches :: Regex -> String -> Maybe Int
+-- | Match a string to a regex.  Returns Just the length of the match if the
+-- regex matches the string, otherwise Nothing.
+matches :: Regex -> String -> Maybe Match
 matches r s = matches' r s 0
-  where matches' r' [] i
-          | matchesEmpty r' = Just i
-          | otherwise       = Nothing
-        matches' r' (c:cs) i =
-          case matches' (derive r' c) cs $ i + 1 of
-            Nothing -> if matchesEmpty r' then Just i else Nothing
-            found   -> found
+  where
+    matches' r' [] i
+        | matchesEmpty r' = Just (Match 0 i)
+        | otherwise       = Nothing
+    matches' r' (c:cs) i = case matches' (derive r' c) cs $ i + 1 of
+        Nothing -> if matchesEmpty r' then Just (Match 0 i) else Nothing
+        found   -> found
 
 
--- Returns a list of all matches in the string.
--- Matches cannot be overlapping.
+-- | Returns a list of all matches against a given regex.
+-- Matches do not overlap.
 allMatches :: Regex -> String -> [Match]
 allMatches r s = allMatches' s 0
-  where allMatches' [] i = []
-        allMatches' cs i =
-          case matches r cs of
-            Nothing  -> allMatches' (tail cs) $ i + 1
-            Just len -> (i, len) : allMatches' (drop len cs) (i + len)
+  where
+    allMatches' [] i = []
+    allMatches' cs i = case matches r cs of
+        Nothing    -> allMatches' (tail cs) $ i + 1
+        Just match -> Match i (size match) : allMatches' (drop (size match) cs) (i + size match)
