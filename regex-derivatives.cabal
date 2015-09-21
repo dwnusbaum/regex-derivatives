@@ -14,7 +14,7 @@ library
 
 executable regex
   Main-is:           Main.hs
-  build-depends:     base, parsec
+  build-depends:     base, ansi-terminal, parsec
   ghc-options:       -Wall -O
 
 Test-Suite spec
