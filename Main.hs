@@ -1,4 +1,10 @@
-module Main where
+-- | This module provides the main executable for matching regexes from the
+-- command line.  It also provides a function for getting a pretty printed
+-- list of matches.
+module Main
+    ( main
+    , showAllMatches
+    ) where
 
 import qualified System.Console.ANSI as ANSI
 import           System.Environment  (getArgs)
