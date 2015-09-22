@@ -15,10 +15,11 @@ resetSGRCode = ANSI.setSGRCode [ANSI.Reset]
 showMatchesLine :: String -> Int -> [Match] -> String
 showMatchesLine _ _ [] = ""
 showMatchesLine s i ms = prefix ++ highlightMatches s ms
-  where prefix = ANSI.setSGRCode prefixCode ++ show i ++ resetSGRCode ++ ":"
-        prefixCode = [ ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow
-                     , ANSI.SetConsoleIntensity ANSI.BoldIntensity
-                     ]
+  where
+    prefix = ANSI.setSGRCode prefixCode ++ show i ++ resetSGRCode ++ ":"
+    prefixCode = [ ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Yellow
+                 , ANSI.SetConsoleIntensity ANSI.BoldIntensity
+                 ]
 
 -- | Highlights all of the matches on a particular line using ANSI SGR codes
 highlightMatches :: String -> [Match] -> String

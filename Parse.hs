@@ -1,7 +1,8 @@
+-- | This module provides a function for parsing strings into regexes.
 module Parse
-  ( parseRegex
-  , reserved
-  ) where
+    ( parseRegex
+    , reserved
+    ) where
 
 import Control.Applicative ((<|>), (<$), (<*), (*>), liftA, pure)
 import Data.List           (foldl1')
@@ -23,22 +24,24 @@ parseRegex = parse (regex <* eof) "Regex Matcher"
 -- left recursion.
 regex :: Parser Regex
 regex = buildExpressionParser ops atom
-  where ops = [ [ Postfix (Kleene <$ char '*')
-                , Postfix ((\t -> Seq t (Kleene t)) <$ char '+')
-                , Postfix (Or Empty <$ char '?')
-                ]
-              , [ Infix (pure Seq) AssocLeft
-                ]
-              , [ Infix (Or <$ char '|') AssocLeft
-                ]
-              ]
+  where
+    ops = [ [ Postfix (Kleene <$ char '*')
+            , Postfix ((\t -> Seq t (Kleene t)) <$ char '+')
+            , Postfix (Or Empty <$ char '?')
+            ]
+          , [ Infix (pure Seq) AssocLeft
+            ]
+          , [ Infix (Or <$ char '|') AssocLeft
+            ]
+          ]
 
--- | A single atom of a regex is a literal, a character class, or something in parentheses
+-- | A single atom of a regex is a literal, a character class, or a regex
+-- in parentheses.
 atom :: Parser Regex
 atom = literal <|> characterClass <|> parens regex
   where parens = between (char '(') $ char ')'
 
--- | A literal is the dot character or any other character
+-- | A literal is the dot character or any other character.
 literal :: Parser Regex
 literal = dot <|> symbol
 
@@ -52,7 +55,7 @@ reserved = "()[]|\\*?.+"
 symbol :: Parser Regex
 symbol = liftA Sym $ (try (char '\\') *> oneOf reserved) <|> noneOf reserved
 
--- | Matches the dot character
+-- | Matches the dot character.
 dot :: Parser Regex
 dot = Dot <$ char '.'
 
