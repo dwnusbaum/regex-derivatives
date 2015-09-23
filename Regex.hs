@@ -33,11 +33,11 @@ derive Empty _ = Nil
 derive (Sym c) x
     | x == c = Empty
     | otherwise = Nil
-derive (Or  r1 r2) c = Or (derive r1 c) (derive r2 c)
+derive (Or  r1 r2) c = Or (derive r1 c) $ derive r2 c
 derive (Seq r1 r2) c
     | matchesEmpty r1 = Or (derive r2 c) $ Seq (derive r1 c) r2
     | otherwise = Seq (derive r1 c) r2
-derive (Kleene r1) c = Seq (derive r1 c) (Kleene r1)
+derive (Kleene r) c = Seq (derive r c) $ Kleene r
 
 -- | If the given regex accepts the empty string, this returns true.
 -- Otherwise it returns false.
