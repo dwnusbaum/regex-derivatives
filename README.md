@@ -2,7 +2,7 @@
 
 Simple regex engine written in Haskell.
 
-Instead of using backtracking or finite automata to match strings, it uses derivatives.  The idea and implementation are taken from a blog post by [Matt Might][Matt's blog].
+Instead of using backtracking or finite automata to match strings, it uses derivatives.  The idea and algorithm are taken from a blog post by [Matt Might][Matt's blog].
 
 ### Installation
     git clone https://github.com/dwnusbaum/regex-derivatives.git
