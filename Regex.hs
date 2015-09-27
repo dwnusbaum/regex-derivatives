@@ -16,6 +16,7 @@ data Regex
     | Or  Regex Regex  -- ^ Matches first or second pattern
     | Seq Regex Regex  -- ^ Matches one pattern followed by another
     | Kleene Regex     -- ^ Matches the kleene star of a pattern
+    | Group Tag Regex  -- ^ Matches a regex and stores its match in a capturing group
     deriving (Eq, Show)
 
 -- | The data type of matches
@@ -24,6 +25,10 @@ data Match = Match
     , size  :: Int  -- ^ The size of the match.
     }
     deriving (Eq, Show)
+
+type Tag = Int
+
+newtype CaptureGroups = CaptureGroups [(Tag, Match)]
 
 -- | Derive a regex with respect to a character.
 derive :: Regex -> Char -> Regex
